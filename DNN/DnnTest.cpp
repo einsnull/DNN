@@ -83,7 +83,7 @@ int main()
 
 	DNN dnn(sae1HiddenSize,sae2HiddenSize,numClasses);
 	dnn.preTrain(trainingData,trainingLabels,lambda,alpha,beta,
-		sparsityParam,maxIter,miniBatchSize,imgWidth);
+		sparsityParam,maxIter,miniBatchSize);
 	cout << "Loading test data..." << endl;
 	ret = loadMnistData(testData,"mnist\\t10k-images-idx3-ubyte");
 	if(ret == false)
@@ -98,6 +98,11 @@ int main()
 	MatrixXi pred1 = dnn.predict(testData);
 	double acc1 = dnn.calcAccurancy(testLabels,pred1);
 	cout << "Accurancy before fine tuning: " << acc1 * 100 << "%" << endl;
+	MatrixXd saeTheta1 = dnn.getSae1Theta();
+	MatrixXd saeTheta2 = dnn.getSae2Theta();
+	MatrixXd filter = saeTheta2 * saeTheta1;
+	buildImage(saeTheta1,imgWidth,"sae1Before.jpg",false);
+	buildImage(filter,imgWidth,"sae2Before.jpg",false);
 	cout << "Fine Tuning..." << endl;
 	dnn.fineTune(trainingData,trainingLabels,lambda[3],
 		alpha[3],maxIter[3],miniBatchSize);
@@ -105,6 +110,11 @@ int main()
 	double acc2 = dnn.calcAccurancy(testLabels,pred2);
 	cout << "Accurancy: " << acc2 * 100 << "%" << endl;
 	dnn.saveModel("DNN_Model.txt");
+	saeTheta1 = dnn.getSae1Theta();
+	saeTheta2 = dnn.getSae2Theta();
+	filter = saeTheta2 * saeTheta1;
+	buildImage(saeTheta1,imgWidth,"sae1After.jpg",false);
+	buildImage(filter,imgWidth,"sae2After.jpg",false);
 	clock_t end = clock();
 	cout << "The code ran for " << 
 		(end - start)/(double)(CLOCKS_PER_SEC*60) << " minutes." << endl;

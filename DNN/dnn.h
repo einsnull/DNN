@@ -24,9 +24,11 @@ public:
 		double alpha,int maxIter,int batchSize);
 	void preTrain(MatrixXd &data,MatrixXi &labels,
 		double lambda[],double alpha[],double beta[],double sparsityParam[],
-		int maxIter[],int miniBatchSize,int imgWidth);
+		int maxIter[],int miniBatchSize);
 	bool saveModel(char *szFileName);
 	bool loadModel(char *szFileName);
+	MatrixXd getSae1Theta();
+	MatrixXd getSae2Theta();
 private:
 	MatrixXd softmaxGradient(MatrixXd &x);
 	MatrixXd feedForward(MatrixXd &theta,
@@ -45,6 +47,16 @@ DNN::DNN(int sae1HiddenSize,int sae2HiddenSize,int numClasses)
 	this->sae1HiddenSize = sae1HiddenSize;
 	this->sae2HiddenSize = sae2HiddenSize;
 	this->numClasses = numClasses;
+}
+
+MatrixXd DNN::getSae1Theta()
+{
+	return saeTheta1;
+}
+
+MatrixXd DNN::getSae2Theta()
+{
+	return saeTheta2;
 }
 
 MatrixXd DNN::feedForward(MatrixXd &theta,MatrixXd &b,
@@ -194,8 +206,9 @@ void DNN::fineTune(MatrixXd &data,MatrixXi &labels,
 }
 
 void DNN::preTrain(MatrixXd &data,MatrixXi &labels,
-		double lambda[],double alpha[],double beta[],double sparsityParam[],
-		int maxIter[],int miniBatchSize,int imgWidth)
+		double lambda[],double alpha[],double beta[],
+		double sparsityParam[],
+		int maxIter[],int miniBatchSize)
 {
 	int numOfExamples = data.cols();
 	int ndim = data.rows(); 
@@ -212,11 +225,6 @@ void DNN::preTrain(MatrixXd &data,MatrixXi &labels,
 	MatrixXd b1 = sae1.getBias();
 	saeB1.resize(b1.rows(),b1.cols());
 	saeB1 = b1;
-
-	/*cout << "saeTheta1:" << endl;
-	cout << saeTheta1.rows() << " " << saeTheta1.cols() << endl;*/
-	
-	buildImage(theta1,imgWidth,"sae1.jpg",false);
 	
 	MatrixXd sae1Features = feedForward(saeTheta1,saeB1,data);
 	SAE sae2(sae1HiddenSize,sae2HiddenSize);
@@ -231,14 +239,8 @@ void DNN::preTrain(MatrixXd &data,MatrixXi &labels,
 	saeB2.resize(b2.rows(),b2.cols());
 	saeB2 = b2;
 	
-	/*cout << "saeTheta2:" << endl;
-	cout << saeTheta2.rows() << " " << saeTheta2.cols() << endl;*/
-	MatrixXd filter = saeTheta2 * saeTheta1;
-	buildImage(filter,imgWidth,"sae2.jpg",false);
-
 	MatrixXd sae2Features = feedForward(saeTheta2,saeB2,sae1Features);
-	//cout << "Saving sae2Features..." << endl;
-	//saveMatrix(sae2Features,"saeFeatures2");
+
 	cout << "PreTraining softmax ..." << endl;
 	SoftMax softmax(sae2HiddenSize,numClasses);
 	softmax.train(sae2Features,labels,lambda[2],alpha[2],maxIter[2],miniBatchSize);
