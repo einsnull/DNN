@@ -122,7 +122,7 @@ double SAE::computeCost(
 	MatrixXd delta3 = (a3 - data).cwiseProduct(sigmoidGradient(z3));
 
 	MatrixXd delta2 = (theta2.transpose() * delta3 
-		+ spDelta.replicate(1,numOfExamples)).cwiseProduct(sigmoidGradient(z2)) * beta;
+		+ spDelta.replicate(1,numOfExamples) * beta).cwiseProduct(sigmoidGradient(z2));
 
 	//compute gradients
 
