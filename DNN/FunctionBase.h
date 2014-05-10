@@ -1,6 +1,7 @@
 #pragma once
 #include <Eigen/Dense>
 using namespace Eigen;
+using namespace std;
 
 //scalar reciprocal
 double reciprocalScalar(double x)
@@ -39,8 +40,18 @@ public:
 	MatrixXd logMat(MatrixXd &z);
 	MatrixXd reciprocal(MatrixXd &z);
 	double calcAccurancy(MatrixXi &pred,MatrixXi &labels);
+	FunctionBase();
 };
 
+FunctionBase::FunctionBase()
+{
+#ifdef _WINDOWS_
+	//set eigen threads
+	SYSTEM_INFO info;
+	GetSystemInfo(&info);
+	Eigen::setNbThreads(info.dwNumberOfProcessors);
+#endif
+}
 
 MatrixXd FunctionBase::bsxfunMinus(MatrixXd &m,MatrixXd &x)
 {
